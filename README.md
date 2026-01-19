@@ -31,7 +31,7 @@ A chatbot that:
   PostgreSQL / ChromaDB (vector) / Pinecone (vector)
 
 - **Model & Integration Layer**  
-  [to be specified]
+  Ollama / LM Studio / GGUF models v ia llama.cpp.. still deciding
 
 - **Deployment**  
   [to be specified]

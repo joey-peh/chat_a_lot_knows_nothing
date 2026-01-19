@@ -8,3 +8,11 @@ Instead of spending valuable time digging through dense documentation, I'd rathe
 ## My Solution
 A chatbot that lets me upload documents for the model to understand and prioritise knowledge directly from them, 
 raises no privacy concerns, and answers simple questions like “What is provable debt?” in just seconds.
+
+## Architecture
+UI: Streamlit
+Orchestration Layer: Django + LangGraph
+Data & Knowledge Base: Postgres SQL/ChromaDB(Vector)/Pinecone(Vector)
+Model & Integration Layer:
+Deployment:
+Hosting:

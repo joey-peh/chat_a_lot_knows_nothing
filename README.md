@@ -2,7 +2,6 @@
 
 ## The Problem
 
-<<<<<<< HEAD
 As a software engineer working with UCS documentation, I waste **hours** every week doing this:
 
 - Reading 200+ page PDFs  
@@ -57,16 +56,3 @@ Key exclusions:
 - winding-up-rules-reg-84.pdf [p. 41]
 
 Just that. Fast. Precise. No fluff. No made-up examples.
-=======
-## My Solution
-A chatbot that lets me upload documents for the model to understand and prioritise knowledge directly from them, 
-raises no privacy concerns, and answers simple questions like “What is provable debt?” in just seconds.
-
-## Architecture
-UI: Streamlit
-Orchestration Layer: Django + LangGraph
-Data & Knowledge Base: Postgres SQL/ChromaDB(Vector)/Pinecone(Vector)
-Model & Integration Layer:
-Deployment:
-Hosting:
->>>>>>> 794a3974913ab11808ac939d202d6a478a939239

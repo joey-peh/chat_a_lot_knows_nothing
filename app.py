@@ -3,7 +3,7 @@ import pandas as pd
 
 st.title("Chat a lot.. knows nothing")
 
-st.warning('This is a warning', icon="⚠️")
+st.warning('Please upload documents to teach me something..', icon="⚠️")
 
 # Initialize chat history in session state
 if "messages" not in st.session_state:

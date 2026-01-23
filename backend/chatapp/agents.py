@@ -1,13 +1,19 @@
 from typing import Annotated, TypedDict
+import os
+from dotenv import load_dotenv
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
 from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
 
+# Load environment variables from .env file
+load_dotenv()
+
 # LLM setup
 llm = ChatOpenAI(
-    model="gpt-4o-mini"
+    model="gpt-4o-mini",
+    api_key=os.getenv("OPENAI_API_KEY")
 )
 
 # State with message history

@@ -2,7 +2,7 @@
 
 ## Problem Statement
 
-As a software engineer, I spend endless hours reading UCS documentation, but I often forget the basics of key financial terms because the volume of material is overwhelming. 
+As a software engineer, I spend endless hours reading documentation, but I often forget the basics of key financial terms because the volume of material is overwhelming. 
 
 There are countless documents to sift through, yet all I really want is to ask a domain expert (SME) simple, direct questions like:
 

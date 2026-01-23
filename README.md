@@ -38,3 +38,12 @@ A chatbot that:
 
 - **Hosting**  
   [to be specified]
+
+
+  ## Summary of the flow
+1. User Uploads Document: Document is uploaded via Django and saved to the local file system.
+2. Text Extraction: The text is extracted from PDFs, Word docs, etc.
+3. Ollama Processing: The extracted text is sent to Ollama for AI processing (e.g., prioritization or categorization).
+4. Store Results: Processed data (priority score, tags, etc.) is stored in the database for further querying.
+5. Asynchronous Processing: Large documents are handled in the background using Celery.
+6. Search and Ranking: Users can search and view documents with prioritized results.

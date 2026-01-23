@@ -31,7 +31,7 @@ A chatbot that:
   PostgreSQL / ChromaDB (vector) / Pinecone (vector)
 
 - **Model & Integration Layer**  
-  Ollama / LM Studio / GGUF models v ia llama.cpp.. still deciding
+  Ollama 
 
 - **Deployment**  
   [to be specified]
@@ -41,7 +41,7 @@ A chatbot that:
 
 
   ## Summary of the flow
-1. User Uploads Document: Document is uploaded via Django and saved to the local file system.
+1. User Uploads Document: Document is uploaded via Streamlit UI and saved to the local file system.
 2. Text Extraction: The text is extracted from PDFs, Word docs, etc.
 3. Ollama Processing: The extracted text is sent to Ollama for AI processing (e.g., prioritization or categorization).
 4. Store Results: Processed data (priority score, tags, etc.) is stored in the database for further querying.

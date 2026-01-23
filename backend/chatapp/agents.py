@@ -4,23 +4,11 @@ from langgraph.graph.message import add_messages
 from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
-from django.contrib.auth import get_user_model
-
-# Example tool: Fetch user data from Django DB (runs in the same process)
-@tool
-def get_user_info(user_id: int) -> str:
-    """Get basic info about a user by ID."""
-    User = get_user_model()
-    try:
-        user = User.objects.get(id=user_id)
-        return f"User: {user.username}, Email: {user.email}"
-    except User.DoesNotExist:
-        return "User not found."
 
 # LLM setup
 llm = ChatOpenAI(
     model="gpt-4o-mini"
-).bind_tools([get_user_info])
+)
 
 # State with message history
 class AgentState(TypedDict):

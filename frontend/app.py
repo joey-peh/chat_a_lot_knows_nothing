@@ -1,62 +1,170 @@
 import streamlit as st
-import requests  # To interact with the backend API
+import requests
+import json
 
-st.title("Chat a lot.. knows nothing")
+# Backend API base URL
+BACKEND_URL = "http://localhost:8000"
 
-st.warning('Please upload documents to teach me something..', icon="⚠️")
+# Set up the title and introduction for the app
+st.set_page_config(page_title="Chat a lot.. knows nothing", layout="wide")
+st.title("📚 Chat a lot.. knows nothing")
+st.markdown("Upload your documents and ask questions about them!")
 
-# Initialize chat history in session state
+# Initialize session state
 if "messages" not in st.session_state:
     st.session_state.messages = []
+    
+if "documents" not in st.session_state:
+    st.session_state.documents = []
 
-# Display chat messages from history
+# Sidebar for document management
+st.sidebar.header("📄 Document Management")
+
+# Display uploaded documents
+def load_documents():
+    """Fetch all uploaded documents from the backend"""
+    try:
+        response = requests.get(f"{BACKEND_URL}/api/documents/")
+        if response.status_code == 200:
+            return response.json().get("documents", [])
+    except Exception as e:
+        st.sidebar.error(f"Failed to load documents: {str(e)}")
+    return []
+
+# Display current documents
+documents = load_documents()
+st.session_state.documents = documents
+
+if documents:
+    st.sidebar.subheader(f"Uploaded Documents ({len(documents)})")
+    for doc in documents:
+        col1, col2 = st.sidebar.columns([3, 1])
+        with col1:
+            st.caption(f"📄 {doc['name']}")
+        with col2:
+            if st.button("🗑️", key=f"delete_{doc['id']}"):
+                # Delete document
+                try:
+                    response = requests.delete(
+                        f"{BACKEND_URL}/api/documents/",
+                        json={"file_id": doc['id']}
+                    )
+                    if response.status_code == 200:
+                        st.sidebar.success("Document deleted!")
+                        st.rerun()
+                    else:
+                        st.sidebar.error("Failed to delete document")
+                except Exception as e:
+                    st.sidebar.error(f"Error: {str(e)}")
+else:
+    st.sidebar.info("No documents uploaded yet. Upload one to get started!")
+
+# File upload section
+st.sidebar.subheader("Upload New Document")
+uploaded_file = st.sidebar.file_uploader(
+    "Choose a file",
+    type=["csv", "pdf", "docx", "doc", "png", "jpg", "jpeg"],
+    label_visibility="collapsed"
+)
+
+if uploaded_file:
+    if st.sidebar.button("📤 Upload & Process", use_container_width=True):
+        with st.sidebar.spinner("Processing document..."):
+            try:
+                # Upload file to backend
+                files = {'file': (uploaded_file.name, uploaded_file.getbuffer(), uploaded_file.type)}
+                response = requests.post(
+                    f"{BACKEND_URL}/api/documents/",
+                    files=files
+                )
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    st.sidebar.success(f"✅ Document uploaded!")
+                    st.sidebar.caption(f"Extracted {result['text_length']} characters")
+                    st.rerun()
+                else:
+                    st.sidebar.error(f"Upload failed: {response.json().get('error', 'Unknown error')}")
+            except Exception as e:
+                st.sidebar.error(f"Error: {str(e)}")
+
+# Main chat area
+st.subheader("💬 Chat")
+
+# Display chat history
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
-        if "file_details" in message:
-            st.write(f"Uploaded file: {message['file_details']['name']}")
+        if "documents_used" in message:
+            if message["documents_used"]:
+                st.caption(f"📚 Using: {', '.join(message['documents_used'])}")
 
-# Accept user input and files
-user_input = st.text_input("Say something:")
+# Load chat history from backend
+def load_chat_history():
+    """Fetch chat history from the backend"""
+    try:
+        response = requests.get(f"{BACKEND_URL}/api/chats/")
+        if response.status_code == 200:
+            chats = response.json().get("chat_history", [])
+            return chats
+    except Exception as e:
+        st.error(f"Failed to load chat history: {str(e)}")
+    return []
 
-uploaded_files = st.file_uploader(
-    "Upload a file", type=["csv", "png", "jpg", "jpeg", "pdf"], accept_multiple_files=True
-)
+# Chat input
+user_input = st.chat_input("Ask me anything about your documents...")
 
-if user_input or uploaded_files:
-    # Handle the user's message and uploaded files
-    user_message = user_input
-
-    # Display user message in the chat
+if user_input:
+    # Display user message
     with st.chat_message("user"):
-        st.markdown(user_message)
-        file_details_list = []
-
-        # Send uploaded files to the backend for processing
-        for file in uploaded_files:
-            st.write(f"Uploaded file: {file.name}")
-            file_details = {"name": file.name, "type": file.type, "size": file.size}
-            file_details_list.append(file_details)
+        st.markdown(user_input)
+    st.session_state.messages.append({"role": "user", "content": user_input})
+    
+    # Send query to backend
+    with st.spinner("Thinking..."):
+        try:
+            response = requests.post(
+                f"{BACKEND_URL}/api/chats/",
+                json={"message": user_input}
+            )
             
-            # Send the file to the backend API (replace with your actual API URL)
-            backend_url = "http://localhost:8000/api/process_document/"  # Replace with actual URL
-
-            files = {'file': (file.name, file, file.type)}
-            response = requests.post(backend_url, files=files)
-
             if response.status_code == 200:
-                st.write(f"File processed successfully: {file.name}")
-                st.write(f"Processed data: {response.json()}")
+                result = response.json()
+                assistant_response = result.get("response", "No response generated")
+                documents_used = result.get("documents_used", 0)
+                
+                # Display assistant response
+                with st.chat_message("assistant"):
+                    st.markdown(assistant_response)
+                    if documents_used > 0:
+                        st.caption(f"📚 Used {documents_used} document(s) for this answer")
+                
+                st.session_state.messages.append({
+                    "role": "assistant",
+                    "content": assistant_response,
+                    "documents_used": [doc['name'] for doc in documents[:documents_used]]
+                })
             else:
-                st.error(f"Failed to process file: {file.name}")
+                st.error(f"Error: {response.json().get('error', 'Unknown error')}")
+        except Exception as e:
+            st.error(f"Failed to get response: {str(e)}")
 
-        # Append file details to session state for future use
-        st.session_state.messages.append({"role": "user", "content": user_message, "file_details": file_details_list})
+# Chat management in sidebar
+st.sidebar.divider()
+st.sidebar.subheader("💬 Chat History")
 
-    # Simulate assistant response (replace with your LLM logic)
-    with st.chat_message("assistant"):
-        # Simple response
-        response = f"You said: '{user_message}'. You uploaded {len(uploaded_files)} file(s)."
-        st.markdown(response)
+if st.sidebar.button("🗑️ Clear Chat History", use_container_width=True):
+    try:
+        response = requests.delete(f"{BACKEND_URL}/api/chats/")
+        if response.status_code == 200:
+            st.session_state.messages = []
+            st.sidebar.success("Chat cleared!")
+            st.rerun()
+        else:
+            st.sidebar.error("Failed to clear chat")
+    except Exception as e:
+        st.sidebar.error(f"Error: {str(e)}")
 
-    st.session_state.messages.append({"role": "assistant", "content": response})
+# Footer
+st.divider()
+st.caption("💡 Tip: Upload PDF, Word, CSV, or image files. The chatbot will analyze them and answer your questions based on the content.")

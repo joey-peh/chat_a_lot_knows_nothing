@@ -12,6 +12,7 @@ I’d rather get fast, trustworthy answers so I can focus on the engineering wor
 
 ## My Solution
 
+![My project screenshot](chatbot_screenshot.png)
 A chatbot that:
 
 - Supports uploading your business documents (PDFs, docs, etc.)

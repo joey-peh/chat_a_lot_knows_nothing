@@ -1,6 +1,9 @@
 import streamlit as st
 import requests
 import json
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Backend API base URL
 BACKEND_URL = "http://localhost:8000"
@@ -18,7 +21,7 @@ if "documents" not in st.session_state:
     st.session_state.documents = []
 
 # Sidebar for document management
-st.sidebar.header("📄 Document Management")
+st.sidebar.header("📄 DOCUMENT MANAGEMENT")
 
 # Display uploaded documents
 def load_documents():
@@ -82,6 +85,7 @@ if uploaded_file:
                     result = response.json()
                     st.sidebar.success(f"✅ Document uploaded!")
                     st.sidebar.caption(f"Extracted {result['text_length']} characters")
+                    uploaded_file = []
                     st.rerun()
                 else:
                     st.sidebar.error(f"Upload failed: {response.json().get('error', 'Unknown error')}")
@@ -120,50 +124,58 @@ if user_input:
         st.markdown(user_input)
     st.session_state.messages.append({"role": "user", "content": user_input})
     
+    with st.chat_message("assistant"):
     # Send query to backend
-    with st.spinner("Thinking..."):
-        try:
-            response = requests.post(
-                f"{BACKEND_URL}/api/chats/",
-                json={"message": user_input}
-            )
-            
-            if response.status_code == 200:
-                result = response.json()
-                assistant_response = result.get("response", "No response generated")
-                documents_used = result.get("documents_used", 0)
+        with st.spinner("Thinking..."):
+            try:
+                response = requests.post(
+                    f"{BACKEND_URL}/api/chats/",
+                    json={"message": user_input}
+                )
                 
-                # Display assistant response
-                with st.chat_message("assistant"):
-                    st.markdown(assistant_response)
+                if response.status_code == 200:
+                    result = response.json()
+                    logger.debug(f"Full response: {result}...")
+                    assistant_response = result.get("response", "No response generated")
+                    documents_used = result.get("documents_used", 0)
+                    
+                    # Display assistant response
+                    # with st.chat_message("assistant"):
+                    st.markdown(assistant_response)                    
                     if documents_used > 0:
                         st.caption(f"📚 Used {documents_used} document(s) for this answer")
-                
-                st.session_state.messages.append({
-                    "role": "assistant",
-                    "content": assistant_response,
-                    "documents_used": [doc['name'] for doc in documents[:documents_used]]
-                })
-            else:
-                st.error(f"Error: {response.json().get('error', 'Unknown error')}")
-        except Exception as e:
-            st.error(f"Failed to get response: {str(e)}")
+                    
+                    st.session_state.messages.append({
+                        "role": "assistant",
+                        "content": assistant_response,
+                        "documents_used": [doc['name'] for doc in documents[:documents_used]]
+                    })
+                else:
+                    st.error(f"Error: {response.json().get('error', 'Unknown error')}")
+            except Exception as e:
+                st.error(f"Failed to get response: {str(e)}")
 
 # Chat management in sidebar
-st.sidebar.divider()
-st.sidebar.subheader("💬 Chat History")
-
-if st.sidebar.button("🗑️ Clear Chat History", use_container_width=True):
-    try:
-        response = requests.delete(f"{BACKEND_URL}/api/chats/")
-        if response.status_code == 200:
-            st.session_state.messages = []
-            st.sidebar.success("Chat cleared!")
-            st.rerun()
-        else:
-            st.sidebar.error("Failed to clear chat")
-    except Exception as e:
-        st.sidebar.error(f"Error: {str(e)}")
+chat_history = load_chat_history()
+if chat_history:
+    st.sidebar.divider()
+    st.sidebar.subheader("💬 CHAT HISTORY")
+    st.sidebar.markdown("Manage your chat history below.")
+    with st.sidebar.expander(f"View Chat History ({len(chat_history)})", expanded=True):
+        for chat in chat_history:
+            st.caption(f"**{chat['role'].capitalize()}**: {chat['message']}")
+        
+    if st.sidebar.button("🗑️ Clear Chat History", use_container_width=True):
+        try:
+            response = requests.delete(f"{BACKEND_URL}/api/chats/")
+            if response.status_code == 200:
+                st.session_state.messages = []
+                st.sidebar.success("Chat cleared!")
+                st.rerun()
+            else:
+                st.sidebar.error("Failed to clear chat")
+        except Exception as e:
+            st.sidebar.error(f"Error: {str(e)}")
 
 # Footer
 st.divider()

@@ -27,7 +27,7 @@ class ChatAPIView(APIView):
             if all_documents.exists():
                 doc_context = "\n\n=== KNOWLEDGE BASE (PRIORITIZE THIS INFO) ===\n"
                 for doc in all_documents:
-                    doc_context += f"\n📄 {doc.name} ({doc.file_type}):\n{doc.content}\n---"
+                    doc_context += f"\n📄 {doc.name}:\n{doc.content}\n---"
                     document_ids_used.append(doc.id)
             
             # Create system message with document context

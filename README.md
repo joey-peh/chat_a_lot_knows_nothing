@@ -2,22 +2,23 @@
 
 ## Problem Statement
 
-As a software engineer, I spend endless hours reading documentation, but I often forget the basics of key financial terms because the volume of material is overwhelming. 
+As a software engineer I spend hours in documentation, yet I still forget basic terms — either due to information overload or because I'm just ramping up on the business context.
 
-There are countless documents to sift through, yet all I really want is to ask a domain expert (SME) simple, direct questions like:
+I don't want to hunt through hundreds of pages just to answer simple questions like:
 
-> “What exactly is a provable debt?”
+> “What font should this text use?”
 
-Instead of spending valuable time digging through dense documentation, I'd rather get a quick, reliable answer and refocus on the engineering work that actually moves the needle.
+I’d rather get fast, trustworthy answers so I can focus on the engineering work that actually drives progress.
 
 ## My Solution
 
 A chatbot that:
 
-- Lets me upload documents for the model to understand  
-- Prioritises knowledge directly from the uploaded documents  
-- Raises no privacy concerns  
-- Answers simple questions like “What is provable debt?” in just seconds
+- Supports uploading your business documents (PDFs, docs, etc.)
+- Grounds every answer exclusively in those files via secure RAG
+- Ensures full privacy: 100% offline, no cloud, no data sharing
+- Answers straightforward questions in seconds
+- Forgets everything when you want—no unwanted memory
 
 ## Architecture
 
@@ -39,14 +40,19 @@ A chatbot that:
 - **Hosting**  
   [to be specified]
 
+### Upcoming Improvements
+To improve Ollama processing time:
+Migrate from PostgreSQL to ChromaDB for vector storage and retrieval.  
+Key change: Avoid chunking and embedding every uploaded document upfront. Instead, identify and retrieve only the single most relevant full document matching the user's query, then send its entire unchunked content directly to Ollama for context and processing.
 
-  ## Summary of the flow
+  ## Summary of the flow (Plan)
 1. User Uploads Document: Document is uploaded via Streamlit UI and saved to the local file system.
 2. Text Extraction: The text is extracted from PDFs, Word docs, etc.
-3. Ollama Processing: The extracted text is sent to Ollama for AI processing (e.g., prioritization or categorization).
+3. Ollama Processing: The extracted text is sent to Ollama for AI processing.
 4. Store Results: Processed data (priority score, tags, etc.) is stored in the database for further querying.
 5. Asynchronous Processing: Large documents are handled in the background using Celery.
 6. Search and Ranking: Users can search and view documents with prioritized results.
+
 ## Setup & Installation
 
 ### Option 1: Local Development

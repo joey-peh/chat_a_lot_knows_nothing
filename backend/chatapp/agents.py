@@ -1,35 +1,43 @@
 from typing import Annotated, TypedDict
 import os
-from dotenv import load_dotenv
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
 from langgraph.checkpoint.memory import MemorySaver
-from langchain_core.tools import tool
-from langchain_openai import ChatOpenAI
+from langchain_community.chat_models import ChatOllama
+from langchain_core.globals import set_llm_cache
+from langchain_community.cache import SQLiteCache
 
-# Load environment variables from .env file
-load_dotenv()
+# 1. INITIALIZE CACHE
+# This creates a local file 'langchain_cache.db'. 
+# Subsequent identical or near-identical calls will bypass Ollama.
+set_llm_cache(SQLiteCache(database_path=".langchain_cache.db"))
 
-# LLM setup
-llm = ChatOpenAI(
-    model="gpt-4o-mini",
-    api_key=os.getenv("OPENAI_API_KEY")
+ollama_base_url = os.getenv("OLLAMA_HOST", "http://localhost:11434")
+
+# 2. LLM SETUP
+llm = ChatOllama(
+    base_url=ollama_base_url,
+    model="llama3.2:3b-instruct-q6_K",
+    temperature=0.7,
+    # num_ctx=2048,
+    # num_thread=8
 )
 
-# State with message history
 class AgentState(TypedDict):
     messages: Annotated[list, add_messages]
 
-# Agent node: Calls LLM
 def agent_node(state: AgentState):
-    return {"messages": [llm.invoke(state["messages"])]}
+    # Caching happens automatically inside .invoke() thanks to set_llm_cache
+    response = llm.invoke(state["messages"])
+    return {"messages": [response]}
 
-# Build the graph with memory
+# Build the graph
 workflow = StateGraph(state_schema=AgentState)
 workflow.add_node("agent", agent_node)
 workflow.add_edge(START, "agent")
 workflow.add_edge("agent", END)
 
-# Compile with memory (in-memory for simplicity; can use DB checkpointer later)
+# Memory handles conversation "Checkpoints" (the flow), 
+# while SQLiteCache handles "LLM generation" (the output).
 memory = MemorySaver()
 graph = workflow.compile(checkpointer=memory)

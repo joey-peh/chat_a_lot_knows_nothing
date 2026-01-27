@@ -58,6 +58,7 @@ Key change: Avoid chunking and embedding every uploaded document upfront. Instea
 - Python 3.12+
 - PostgreSQL
 - pip/venv
+- Docker
 
 #### Steps
 
@@ -106,6 +107,18 @@ Key change: Avoid chunking and embedding every uploaded document upfront. Instea
    streamlit run app.py
    ```
 
+   **Terminal 3 - Ollama:**
+   ```bash
+   # Run Ollama container
+   docker run -d \  --name ollama \  -p 11434:11434 \  -v ollama_data:/root/.ollama \  -e OLLAMA_HOST=0.0.0.0 \  --restart unless-stopped \  ollama/ollama:latest
+
+   # Pull the Llama 3.2 model
+   docker exec ollama ollama pull llama3.2:3b-instruct-q6_K
+
+   # Test the model
+   docker exec -it ollama ollama run llama3.2:3b-instruct-q6_K
+   ```
+
 6. **Access the application:**
    - Frontend: http://localhost:8501
    - Backend API: http://localhost:8000
@@ -134,10 +147,16 @@ Key change: Avoid chunking and embedding every uploaded document upfront. Instea
    docker-compose up -d --build
    ```
 
+3. **Pull the Llama 3.2 model**
+   ```bash
+   docker exec ollama ollama pull llama3.2:3b-instruct-q6_K
+   ```
+
 3. **Access the application:**
    - Frontend: http://localhost:8501
    - Backend API: http://localhost:8000
    - Database: localhost:5432
+   - Ollama API: http://localhost:11434
 
 4. **Useful Docker commands:**
    ```bash
@@ -160,14 +179,6 @@ For more Docker details, see [DOCKER_SETUP.md](DOCKER_SETUP.md)
 
 - `POST /api/chats/` - Send a message to the chatbot
 - `POST /api/documents/` - Upload a document for processing
-
-## Environment Variables
-- `DEBUG` - Django debug mode (default: True)
-- `DB_NAME` - PostgreSQL database name (default: postgres)
-- `DB_USER` - PostgreSQL user (default: postgres)
-- `DB_PASSWORD` - PostgreSQL password (default: postgres)
-- `DB_HOST` - PostgreSQL host (default: db)
-
 
 ## Model Options
 ![model options](model_options.png) (Thanks Grok!)

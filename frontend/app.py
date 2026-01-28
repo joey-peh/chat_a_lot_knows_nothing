@@ -4,9 +4,10 @@ import json
 import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+import os
 
 # Backend API base URL
-BACKEND_URL = "http://localhost:8000"
+BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
 # Set up the title and introduction for the app
 st.set_page_config(page_title="Chat a lot.. knows nothing", layout="wide")

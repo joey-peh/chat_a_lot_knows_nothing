@@ -22,6 +22,8 @@ services:
       - ./frontend:/app
     depends_on:
       - backend
+    environment:
+      - BACKEND_URL=http://backend:8000
 
   ollama:
     image: ollama/ollama:latest

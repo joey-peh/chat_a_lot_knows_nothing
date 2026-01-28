@@ -6,15 +6,9 @@ from langgraph.checkpoint.memory import MemorySaver
 from langchain_community.chat_models import ChatOllama
 from langchain_core.globals import set_llm_cache
 from langchain_community.cache import SQLiteCache
-
-# 1. INITIALIZE CACHE
-# This creates a local file 'langchain_cache.db'. 
-# Subsequent identical or near-identical calls will bypass Ollama.
-set_llm_cache(SQLiteCache(database_path=".langchain_cache.db"))
-
 ollama_base_url = os.getenv("OLLAMA_HOST", "http://localhost:11434")
 
-# 2. LLM SETUP
+#LLM SETUP
 llm = ChatOllama(
     base_url=ollama_base_url,
     model="llama3.2:3b-instruct-q6_K",

@@ -110,7 +110,7 @@ Key change: Avoid chunking and embedding every uploaded document upfront. Instea
    **Terminal 3 - Ollama:**
    ```bash
    # Run Ollama container
-   docker run -d \  --name ollama \  -p 11434:11434 \  -v ollama_data:/root/.ollama \  -e OLLAMA_HOST=0.0.0.0 \  --restart unless-stopped \  ollama/ollama:latest
+   docker run -d -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama
 
    # Pull the Llama 3.2 model
    docker exec ollama ollama pull llama3.2:3b-instruct-q6_K
@@ -121,7 +121,8 @@ Key change: Avoid chunking and embedding every uploaded document upfront. Instea
 
 6. **Access the application:**
    - Frontend: http://localhost:8501
-   - Backend API: http://localhost:8000
+   - Backend API: http://localhost:8000   
+   - Ollama API: http://localhost:11434
 
 ### Option 2: Docker (Recommended)
 
@@ -149,13 +150,12 @@ Key change: Avoid chunking and embedding every uploaded document upfront. Instea
 
 3. **Pull the Llama 3.2 model**
    ```bash
-   docker exec ollama ollama pull llama3.2:3b-instruct-q6_K
+   docker exec ollama_service ollama pull llama3.2:3b-instruct-q6_K
    ```
 
 3. **Access the application:**
    - Frontend: http://localhost:8501
    - Backend API: http://localhost:8000
-   - Database: localhost:5432
    - Ollama API: http://localhost:11434
 
 4. **Useful Docker commands:**

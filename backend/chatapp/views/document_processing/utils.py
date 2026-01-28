@@ -5,12 +5,6 @@ from PIL import Image
 import pytesseract
 import pdfplumber
 
-# Local Ollama library import (assuming you have a Python package or class for it)
-import ollama  # or whatever the local Ollama package is
-
-# Configuration - you should move this to settings.py
-# OLLAMA_API_URL = "http://localhost:11434/api/generate"  # Removed since no API call needed
-
 def extract_text_from_pdf(file_path):
     text = ""
     with fitz.open(file_path) as doc:
@@ -54,15 +48,3 @@ def process_image(file):  # Removed 'self' parameter
     except Exception as e:
         return {"error": f"Failed to process image: {str(e)}"}
 
-def process_with_ollama(text, prompt):
-    """Process text with the local Ollama library"""
-    try:
-        # Assuming Ollama has a function that takes context and prompt and returns a response
-        response = ollama.chat(context=text, prompt=prompt)  # Replace with the actual method
-
-        if response:
-            return {"message": "Ollama processed successfully", "response": response}
-        else:
-            return {"error": "Failed to generate response from Ollama"}
-    except Exception as e:
-        return {"error": f"Unexpected error: {str(e)}"}

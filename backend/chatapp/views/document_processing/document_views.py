@@ -1,8 +1,11 @@
+import logging
+import sys
+import traceback
 from django.http import JsonResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from .models import Document 
@@ -11,7 +14,7 @@ from .utils import *
 
 @method_decorator(csrf_exempt, name='dispatch')
 class DocumentProcessingView(APIView):
-    parser_classes = (MultiPartParser, FormParser)
+    parser_classes = (MultiPartParser, FormParser, JSONParser)
 
     def post(self, request, *args, **kwargs):
         """Process uploaded documents and store in File model"""
@@ -105,6 +108,7 @@ class DocumentProcessingView(APIView):
         """Delete a document - removes it from the chatbot's knowledge"""
         try:
             file_id = request.data.get('file_id')
+            print(f"Deleting file with id: {file_id}")
             
             if not file_id:
                 return Response({"error": "file_id is required"}, status=status.HTTP_400_BAD_REQUEST)

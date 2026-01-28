@@ -34,7 +34,7 @@ A chatbot that:
   Django + LangGraph
 
 - **Data & Knowledge Base**  
-  PostgreSQL / ChromaDB (vector) - Upcoming! 
+  SqlLite / ChromaDB (vector) - Upcoming! 
 
 - **Model & Integration Layer**  
   Ollama 
@@ -47,7 +47,7 @@ A chatbot that:
 
 ## Upcoming Improvements
 To improve Ollama processing time:
-Migrate from PostgreSQL to ChromaDB for vector storage and retrieval.  
+Migrate from SqlLite to ChromaDB for vector storage and retrieval.  
 Key change: Avoid chunking and embedding every uploaded document upfront. Instead, identify and retrieve only the single most relevant full document matching the user's query, then send its entire unchunked content directly to Ollama for context and processing.
 
 ## Setup & Installation
@@ -56,7 +56,6 @@ Key change: Avoid chunking and embedding every uploaded document upfront. Instea
 
 #### Prerequisites
 - Python 3.12+
-- PostgreSQL
 - pip/venv
 - Docker
 

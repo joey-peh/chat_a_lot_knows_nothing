@@ -5,7 +5,7 @@ from rest_framework import status
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
-from core.retrieval_utils import get_retriever_with_keywords
+from core.retrieval_utils import get_retriever_with_keywords, rerank_documents
 from core.vectorstore import get_vectorstore
 from ..models import LocalChat
 from ..agents import graph
@@ -27,10 +27,11 @@ class ChatAPIView(APIView):
                 
             # Get the Chroma vector store
             vectorstore = get_vectorstore()
-            retriever = get_retriever_with_keywords(vectorstore, message, k=6)
+            retriever = get_retriever_with_keywords(vectorstore, message, k=3)
             
             # Retrieve relevant chunks
             retrieved_docs = retriever.invoke(message)
+            final_docs = rerank_documents(message, retrieved_docs, top_k=2)
             # for i, doc in enumerate(retrieved_docs, 1):
             #     print(f"Rank {i}: {doc.page_content[:200]}... (source: {doc.metadata.get('file_name')})", file=sys.stderr)
 
@@ -38,13 +39,13 @@ class ChatAPIView(APIView):
             doc_context = ""
             used_documents = []
 
-            if retrieved_docs:
+            if final_docs:
                 doc_context = (
                     "\n\n=== RELEVANT DOCUMENT CONTEXT (PRIORITIZE THIS) ===\n"
                 )
                 seen_sources = set()
 
-                for doc in retrieved_docs:
+                for doc in final_docs:
                     meta = doc.metadata
                     source = (
                         meta.get("file_name") or meta.get("document_id") or "unknown"
@@ -85,9 +86,9 @@ class ChatAPIView(APIView):
             # Invoke your graph/agent
             response = graph.invoke(
                 {"messages": messages},
-                config={
-                    "configurable": {"thread_id": "main"}
-                },  # or use user/session id
+                # config={
+                #     "configurable": {"thread_id": "main"}
+                # },  # or use user/session id
             )
 
             # Extract assistant's final response
@@ -106,14 +107,15 @@ class ChatAPIView(APIView):
                 message=assistant_response,
                 used_documents=used_documents,
             )
-
+            
+            print(f"used_documents: {used_documents}", file=sys.stderr)
             return Response(
                 {
                     "message": "Query processed successfully",
                     "user_chat_id": user_chat.id,
                     "assistant_chat_id": assistant_chat.id,
                     "response": assistant_response,
-                    "documents_used": used_documents,
+                    "used_documents": used_documents,
                     "context_length": len(doc_context),
                 },
                 status=status.HTTP_200_OK,

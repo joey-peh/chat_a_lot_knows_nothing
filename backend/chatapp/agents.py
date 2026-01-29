@@ -9,9 +9,7 @@ from core.config import OLLAMA_MODEL, OLLAMA_BASE_URL
 llm = ChatOllama(
     base_url=OLLAMA_BASE_URL,
     model=OLLAMA_MODEL,
-    temperature=0.7,
-    # num_ctx=2048,
-    # num_thread=8
+    temperature=0.7
 )
 
 
@@ -34,4 +32,5 @@ workflow.add_edge("agent", END)
 # Memory handles conversation "Checkpoints" (the flow),
 # while SQLiteCache handles "LLM generation" (the output).
 memory = MemorySaver()
-graph = workflow.compile(checkpointer=memory)
+# graph = workflow.compile(checkpointer=memory)
+graph = workflow.compile()  # turn off memory for now.. because accuracy is not good when it is noisy

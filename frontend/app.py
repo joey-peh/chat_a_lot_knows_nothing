@@ -1,3 +1,5 @@
+import sys
+import time
 import streamlit as st
 import requests
 import json
@@ -37,6 +39,7 @@ def load_documents():
 
 # Display current documents
 documents = load_documents()
+print(f"{documents}", file=sys.stderr)  
 st.session_state.documents = documents
 
 if documents:
@@ -44,14 +47,14 @@ if documents:
     for doc in documents:
         col1, col2 = st.sidebar.columns([3, 1])
         with col1:
-            st.caption(f"📄 {doc['name']}")
+            st.caption(f"📄 {doc['file_name']}")
         with col2:
-            if st.button("🗑️", key=f"delete_{doc['id']}"):
+            if st.button("🗑️", key=f"delete_{doc['document_id']}"):
                 # Delete document
                 try:
                     response = requests.delete(
                         f"{BACKEND_URL}/api/documents/",
-                        json={"file_id": doc['id']}
+                        json={"document_id": doc['document_id']}
                     )
                     if response.status_code == 200:
                         st.sidebar.success("Document deleted!")
@@ -64,11 +67,15 @@ else:
     st.sidebar.info("No documents uploaded yet. Upload one to get started!")
 
 # File upload section
+if "uploader_key" not in st.session_state:
+    st.session_state.uploader_key = "uploader_initial"
+    
 st.sidebar.subheader("Upload New Document")
 uploaded_file = st.sidebar.file_uploader(
     "Choose a file",
     type=["csv", "pdf", "docx", "doc", "png", "jpg", "jpeg"],
-    label_visibility="collapsed"
+    label_visibility="collapsed",
+    key=st.session_state.uploader_key
 )
 
 if uploaded_file:
@@ -85,8 +92,8 @@ if uploaded_file:
                 if response.status_code == 200:
                     result = response.json()
                     st.sidebar.success(f"✅ Document uploaded!")
-                    st.sidebar.caption(f"Extracted {result['text_length']} characters")
-                    uploaded_file = []
+                    # st.sidebar.caption(f"Extracted {result['text_length']} characters")
+                    st.session_state.uploader_key = f"uploader_{int(time.time() * 1000)}"  # unique timestamp
                     st.rerun()
                 else:
                     st.sidebar.error(f"Upload failed: {response.json().get('error', 'Unknown error')}")
@@ -100,9 +107,9 @@ st.subheader("💬 Chat")
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
-        if "documents_used" in message:
-            if message["documents_used"]:
-                st.caption(f"📚 Using: {', '.join(message['documents_used'])}")
+        if "used_documents" in message:
+            if message["used_documents"]:
+                st.caption(f"📚 Using: {', '.join(message['used_documents'])}")
 
 # Load chat history from backend
 def load_chat_history():
@@ -136,20 +143,18 @@ if user_input:
                 
                 if response.status_code == 200:
                     result = response.json()
-                    logger.debug(f"Full response: {result}...")
                     assistant_response = result.get("response", "No response generated")
-                    documents_used = result.get("documents_used", 0)
+                    used_documents = result.get("used_documents", 0)
                     
                     # Display assistant response
-                    # with st.chat_message("assistant"):
                     st.markdown(assistant_response)                    
-                    if documents_used > 0:
-                        st.caption(f"📚 Used {documents_used} document(s) for this answer")
+                    if used_documents > 0:
+                        st.caption(f"📚 Used {used_documents} document(s) for this answer")
                     
                     st.session_state.messages.append({
                         "role": "assistant",
                         "content": assistant_response,
-                        "documents_used": [doc['name'] for doc in documents[:documents_used]]
+                        "used_documents": [doc for doc in documents[:used_documents]]
                     })
                 else:
                     st.error(f"Error: {response.json().get('error', 'Unknown error')}")

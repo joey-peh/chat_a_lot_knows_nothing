@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import chat_views
-from .views.document_processing import document_views
+from .views import document_views
 
 urlpatterns = [
     path('chats/', chat_views.ChatAPIView.as_view(), name='chat-api'),

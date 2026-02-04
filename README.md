@@ -50,6 +50,9 @@ To improve Ollama processing time:
 Migrate from SqlLite to ChromaDB for vector storage and retrieval.  
 Key change: Avoid chunking and embedding every uploaded document upfront. Instead, identify and retrieve only the single most relevant full document matching the user's query, then send its entire unchunked content directly to Ollama for context and processing.
 
+> After switching to ChromaDB, the accuracy of the bot is shit.
+
+
 ## Setup & Installation
 
 ### Option 1: Local Development

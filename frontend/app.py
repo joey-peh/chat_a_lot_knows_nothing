@@ -149,7 +149,7 @@ if user_input:
                     # Display assistant response
                     st.markdown(assistant_response)                    
                     if used_documents > 0:
-                        st.caption(f"📚 Used {used_documents} document(s) for this answer")
+                        st.caption(f"📚 Used {', '.join(used_documents)} document(s) for this answer")
                     
                     st.session_state.messages.append({
                         "role": "assistant",
